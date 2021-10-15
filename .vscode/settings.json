@@ -6,6 +6,12 @@
         "string.h": "c",
         "assert.h": "c",
         "pmap.h": "c",
-        "kclock.h": "c"
+        "kclock.h": "c",
+        "monitor.h": "c",
+        "env.h": "c",
+        "stdio.h": "c",
+        "types.h": "c",
+        "stdarg.h": "c",
+        "lib.h": "c"
     }
 }

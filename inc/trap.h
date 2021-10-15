@@ -41,6 +41,30 @@
 
 #ifndef __ASSEMBLER__
 
+// !NOTE: handler C function
+void DIVIDE_HANDLER();
+void DEBUG_HANDLER();
+void NMI_HANDLER();
+void BRKPT_HANDLER();
+void OFLOW_HANDLER();
+void BOUND_HANDLER();
+void ILLOP_HANDLER();
+void DEVICE_HANDLER();
+void DBLFLT_HANDLER();
+
+void TSS_HANDLER();
+void SEGNP_HANDLER();
+void STACK_HANDLER();
+void GPFLT_HANDLER();
+void PGFLT_HANDLER();
+
+void FPERR_HANDLER();
+void ALIGN_HANDLER();
+void MCHK_HANDLER();
+void SIMDERR_HANDLER();
+
+void SYSCALL_HANDLER();
+
 #include <inc/types.h>
 
 struct PushRegs {
