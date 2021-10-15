@@ -256,7 +256,7 @@ struct Taskstate {
 struct Gatedesc {
 	unsigned gd_off_15_0 : 16;   // low 16 bits of offset in segment
 	unsigned gd_sel : 16;        // segment selector
-	unsigned gd_args : 5;        // # args, 0 for interrupt/trap gates
+	unsigned gd_args : 5;        // # args, 0 for interrupt/trap gates  // !NOTE: reserved
 	unsigned gd_rsv1 : 3;        // reserved(should be zero I guess)
 	unsigned gd_type : 4;        // type(STS_{TG,IG32,TG32})
 	unsigned gd_s : 1;           // must be 0 (system)

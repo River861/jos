@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "error.h": "c",
+        "mmu.h": "c",
+        "x86.h": "c",
+        "string.h": "c",
+        "assert.h": "c",
+        "pmap.h": "c",
+        "kclock.h": "c",
+        "monitor.h": "c",
+        "env.h": "c",
+        "stdio.h": "c",
+        "types.h": "c",
+        "stdarg.h": "c",
+        "lib.h": "c"
+    }
+}
