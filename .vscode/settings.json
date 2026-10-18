@@ -12,6 +12,7 @@
         "stdio.h": "c",
         "types.h": "c",
         "stdarg.h": "c",
-        "lib.h": "c"
+        "lib.h": "c",
+        "cpu.h": "c"
     }
 }

@@ -350,10 +350,75 @@ sys_page_unmap(envid_t envid, void *va)
 //	-E_NO_MEM if there's not enough memory to map srcva in envid's
 //		address space.
 static int
+ipc_send_page(struct Env* sende, struct Env* recve, void *srcva, unsigned perm)
+{
+	int res;
+	void *dstva = recve->env_ipc_dstva;
+
+	if (((uint32_t)srcva >= UTOP) || ((uint32_t)dstva >= UTOP))
+	{
+		recve->env_ipc_perm = 0;  // No page transfered.
+		return 0;
+	}
+	if ((uint32_t)srcva & (PGSIZE - 1))
+	{
+		return -E_INVAL;
+	}
+	if (!(perm & PTE_P) || !(perm & PTE_U) || (perm & ~PTE_SYSCALL))
+	{
+		return -E_INVAL;
+	}
+
+	struct PageInfo *pp;
+	pte_t *pte;
+	if (!(pp = page_lookup(sende->env_pgdir, srcva, &pte)))
+	{
+		return -E_INVAL;
+	}
+	if ((perm & PTE_W) && !(*pte & PTE_W))
+	{
+		return -E_INVAL;
+	}
+	if ((res = page_insert(recve->env_pgdir, pp, dstva, perm)) < 0)
+	{
+		return res;
+	}
+	return 0;
+}
+
+static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	struct Env *recve;
+	struct Env *sende = curenv;
+	int res;
+
+	if ((res = envid2env(envid, &recve, 0)) < 0)
+	{
+		return res;
+	}
+	if (!(recve->env_ipc_recving && recve->env_status == ENV_NOT_RUNNABLE))
+	{
+		return -E_IPC_NOT_RECV;
+	}
+
+	// map page
+	if((res = ipc_send_page(sende, recve, srcva, perm)) < 0)
+	{
+		return res;
+	}
+
+	// finish
+	recve->env_ipc_recving = 0;
+	recve->env_ipc_from = sende->env_id;
+	recve->env_ipc_value = value;
+	recve->env_status = ENV_RUNNABLE;
+	recve->env_tf.tf_regs.reg_eax = 0;
+
+	return 0;
+
+	// panic("sys_ipc_try_send not implemented");
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -371,7 +436,18 @@ static int
 sys_ipc_recv(void *dstva)
 {
 	// LAB 4: Your code here.
-	panic("sys_ipc_recv not implemented");
+	struct Env *recve = curenv;
+
+	if (((uint32_t)dstva < UTOP) && ((uint32_t)dstva & (PGSIZE - 1)))
+	{
+		return -E_INVAL;
+	}
+	recve->env_ipc_recving = 1;
+	recve->env_ipc_dstva = dstva;
+	recve->env_status = ENV_NOT_RUNNABLE;
+	sched_yield();  // block
+
+	// panic("sys_ipc_recv not implemented");
 	return 0;
 }
 
@@ -429,6 +505,14 @@ syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, 
 		case SYS_env_set_pgfault_upcall:
 		{
 			return sys_env_set_pgfault_upcall((envid_t)a1, (void *)a2);
+		}
+		case SYS_ipc_recv:
+		{
+			return sys_ipc_recv((void *)a1);
+		}
+		case SYS_ipc_try_send:
+		{
+			return sys_ipc_try_send((envid_t)a1, (uint32_t)a2, (void *)a3, (unsigned int)a4);
 		}
 		default:
 			return -E_INVAL;

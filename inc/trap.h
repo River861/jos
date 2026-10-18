@@ -65,6 +65,13 @@ void SIMDERR_HANDLER();
 
 void SYSCALL_HANDLER();
 
+void IRQ_TIMER_HANDLER();
+void IRQ_KBD_HANDLER();
+void IRQ_SERIAL_HANDLER();
+void IRQ_SPURIOUS_HANDLER();
+void IRQ_IDE_HANDLER();
+void IRQ_ERROR_HANDLER();
+
 #include <inc/types.h>
 
 struct PushRegs {
