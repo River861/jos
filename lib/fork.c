@@ -90,7 +90,14 @@ duppage(envid_t envid, unsigned pn)
 
 	assert((pte & PTE_P) && (pte & PTE_U));
 
-	if ((pte & PTE_W) || (pte & PTE_COW))
+	if (pte & PTE_SHARE)
+	{
+		if ((res = sys_page_map(0, pg, envid, pg, PTE_SYSCALL)) < 0)
+		{
+			return res;
+		}
+	}
+	else if ((pte & PTE_W) || (pte & PTE_COW))
 	{
 		if ((res = sys_page_map(0, pg, envid, pg, PTE_P | PTE_U | PTE_COW)) < 0)
 		{

@@ -208,7 +208,7 @@ file_get_block(struct File *f, uint32_t filebno, char **blk)
 	}
 	if (*diskbno == 0)
 	{
-		if ((res = alloc_block() < 0))
+		if ((res = alloc_block()) < 0)
 		{
 			return res;
 		}
