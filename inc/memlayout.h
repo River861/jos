@@ -11,7 +11,7 @@
  * which are relevant to both the kernel and user-mode software.
  */
 
-// Global descriptor numbers
+// Global descriptor numbers  !NOTE: that is, selector[15: 3]
 #define GD_KT     0x08     // kernel text
 #define GD_KD     0x10     // kernel data
 #define GD_UT     0x18     // user text

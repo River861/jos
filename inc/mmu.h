@@ -154,7 +154,7 @@ struct Segdesc {
 	unsigned sd_base_15_0 : 16; // Low bits of segment base address
 	unsigned sd_base_23_16 : 8; // Middle bits of segment base address
 	unsigned sd_type : 4;       // Segment type (see STS_ constants)
-	unsigned sd_s : 1;          // 0 = system, 1 = application
+	unsigned sd_s : 1;          // 0 = system, 1 = application   !NOTE: 0 = GATE, 1 = code/data SEG
 	unsigned sd_dpl : 2;        // Descriptor Privilege Level
 	unsigned sd_p : 1;          // Present
 	unsigned sd_lim_19_16 : 4;  // High bits of segment limit
@@ -173,6 +173,8 @@ struct Segdesc {
 { ((lim) >> 12) & 0xffff, (base) & 0xffff, ((base) >> 16) & 0xff,	\
     type, 1, dpl, 1, (unsigned) (lim) >> 28, 0, 0, 1, 1,		\
     (unsigned) (base) >> 24 }
+
+// !NOTE: system SEG, such as TSS, LDT descriptor
 #define SEG16(type, base, lim, dpl) (struct Segdesc)			\
 { (lim) & 0xffff, (base) & 0xffff, ((base) >> 16) & 0xff,		\
     type, 1, dpl, 1, (unsigned) (lim) >> 16, 0, 0, 1, 0,		\
@@ -256,7 +258,7 @@ struct Taskstate {
 struct Gatedesc {
 	unsigned gd_off_15_0 : 16;   // low 16 bits of offset in segment
 	unsigned gd_sel : 16;        // segment selector
-	unsigned gd_args : 5;        // # args, 0 for interrupt/trap gates
+	unsigned gd_args : 5;        // # args, 0 for interrupt/trap gates  // !NOTE: reserved
 	unsigned gd_rsv1 : 3;        // reserved(should be zero I guess)
 	unsigned gd_type : 4;        // type(STS_{TG,IG32,TG32})
 	unsigned gd_s : 1;           // must be 0 (system)

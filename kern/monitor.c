@@ -11,6 +11,7 @@
 #include <kern/monitor.h>
 #include <kern/kdebug.h>
 #include <kern/trap.h>
+#include <kern/pmap.h>
 
 #define CMDBUF_SIZE	80	// enough for one VGA text line
 
@@ -25,6 +26,9 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
+	{ "showmappings", "Display page mappings", mon_showmap },
+	{ "showvmem", "Display the content at virtual memory", mon_showvmem },
+	{ "backtrace", "Display stack backtrace", mon_backtrace }
 };
 
 /***** Implementations of basic kernel monitor commands *****/
@@ -59,9 +63,68 @@ int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 {
 	// Your code here.
+	uint32_t ebp, eip, i;
+	struct Eipdebuginfo info;
+	cprintf("Stack backtrace:\n");
+	for (ebp = read_ebp(); ebp != 0; ebp = *(uint32_t*)ebp)
+	{
+		eip = *((uint32_t*)ebp + 1);
+		debuginfo_eip(eip, &info);
+		cprintf("%%ebp %08x %%eip %08x args ", ebp, eip);
+		for (i = 0; i < 5; ++ i)
+		{
+			cprintf("%08x ", *((uint32_t*)ebp + 2 + i));
+		}
+		cprintf("\n");
+		cprintf("    %s:%d: %.*s+%d\n", info.eip_file, info.eip_line, info.eip_fn_namelen, info.eip_fn_name, eip-info.eip_fn_addr);
+	}
 	return 0;
 }
 
+int
+mon_showmap(int argc, char **argv, struct Trapframe *tf)
+{
+	uint32_t vstart, vend;
+
+	vstart = (uint32_t) strtol(argv[1], 0, 16);
+	vend = (uint32_t) strtol(argv[2], 0, 16);
+
+	vstart = ROUNDDOWN(vstart, PGSIZE);
+	vend = ROUNDDOWN(vend, PGSIZE);
+
+	for(uint32_t va = vstart; va <= vend; va += PGSIZE) {
+		pte_t *pte = pgdir_walk(kern_pgdir, (void*)va, 0);
+		if (pte && (*pte & PTE_P))
+		{
+			cprintf("VA: 0x%08x, PA: 0x%08x, U-bit: %d, W-bit: %d\n", va, PTE_ADDR(*pte), !!(*pte & PTE_U), !!(*pte & PTE_W));
+		} else
+		{
+			cprintf("VA: 0x%08x, PA: No Mapping\n", va);
+		}
+	}
+	return 0;
+}
+
+int
+mon_showvmem(int argc, char **argv, struct Trapframe *tf)
+{
+	uint32_t vstart, vend;
+
+	vstart = (uint32_t) strtol(argv[1], 0, 16);
+	vend = (uint32_t) strtol(argv[2], 0, 16);
+
+	for(uint32_t va = vstart; va <= vend; ++ va) {
+		pte_t *pte = pgdir_walk(kern_pgdir, (void*)va, 0);
+		if (pte && (*pte & PTE_P))
+		{
+			cprintf("[VA: 0x%08x, PA: 0x%08x]: %02x\n", va, PTE_ADDR(*pte) | PGOFF(va), *((uint8_t*)(va)));
+		} else
+		{
+			cprintf("[VA: 0x%08x, PA: No Mapping]: --\n", va);
+		}
+	}
+	return 0;
+}
 
 
 /***** Kernel monitor command interpreter *****/
