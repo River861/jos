@@ -18,7 +18,8 @@ enum {
 	SYS_ipc_try_send,
 	SYS_ipc_recv,
 	SYS_time_msec,
-	NSYSCALLS
+	NSYSCALLS,
+	SYS_dl_transmit
 };
 
 #endif /* !JOS_INC_SYSCALL_H */

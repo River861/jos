@@ -13,6 +13,8 @@
         "types.h": "c",
         "stdarg.h": "c",
         "lib.h": "c",
-        "cpu.h": "c"
+        "cpu.h": "c",
+        "time.h": "c",
+        "e1000.h": "c"
     }
 }
